@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenzie Alkhalifi H | Creative Web Builder & 3D Craftsman</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    animation: {
+                        'mesh-flow': 'meshFlow 12s ease infinite alternate',
+                        'float-slow': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2.5s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        meshFlow: {
+                            '0%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                            '100%': { backgroundPosition: '0% 50%' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-12px) rotate(1.5deg)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.8', transform: 'scale(1)' },
+                            '50%': { opacity: '1', transform: 'scale(1.04)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Three.js Library for 3D Background Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Dynamic Animated Color Gradient Base */
+        .gradient-mesh-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            background: linear-gradient(-45deg, #e0f2fe, #f0f9ff, #fae8ff, #ecfdf5, #eff6ff);
+            background-size: 400% 400%;
+            opacity: 0.85;
+        }
+
+        /* 3D WebGL Canvas Layer */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: auto;
+        }
+
+        /* Modern Bright Glassmorphism Cards */
+        .bright-glass {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 50px -15px rgba(148, 163, 184, 0.22), 0 0 20px rgba(255, 255, 255, 0.7) inset;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .bright-glass:hover {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: rgba(59, 130, 246, 0.45);
+            box-shadow: 0 30px 60px -12px rgba(59, 130, 246, 0.22), 0 0 25px rgba(255, 255, 255, 0.9) inset;
+            transform: translateY(-4px);
+        }
+
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 14px rgba(148, 163, 184, 0.12);
+        }
+
+        /* Gradient Typography */
+        .text-gradient-primary {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #0284c7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-emerald {
+            background: linear-gradient(135deg, #047857 0%, #10b981 50%, #0d9488 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Custom Interactive Range Slider */
+        input[type=range] {
+            accent-color: #2563eb;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="selection:bg-blue-200 selection:text-blue-900">
+
+    <!-- Background Color Gradient Mesh Base -->
+    <div class="gradient-mesh-bg animate-mesh-flow"></div>
+
+    <!-- Interactive 3D WebGL Canvas Backdrop -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Navigation Header -->
+    <header class="fixed top-0 left-0 w-full z-50 px-4 py-4 md:px-8">
+        <nav class="max-w-6xl mx-auto bright-glass rounded-2xl px-5 py-3 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform">
+                    K
+                </div>
+                <div>
+                    <span class="font-extrabold text-base tracking-tight text-slate-800 block leading-none">Kenzie Alkhalifi H</span>
+                    <span class="text-[11px] text-blue-600 font-semibold tracking-wide uppercase">Web Builder & 3D Craftsman</span>
+                </div>
+            </a>
+
+            <!-- Menu Links -->
+            <div class="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-600">
+                <a href="#about" class="hover:text-blue-600 transition-colors">Etos Kerja</a>
+                <a href="#calculator" class="hover:text-blue-600 transition-colors">Kalkulator Budget</a>
+                <a href="#packages" class="hover:text-blue-600 transition-colors">Paket & Harga</a>
+                <a href="#portfolio" class="hover:text-blue-600 transition-colors">Showcase Karya</a>
+            </div>
+
+            <!-- Action Button -->
+            <div class="flex items-center gap-3">
+                <a href="https://wa.me/6285185160051?text=Halo%20Kenzie,%20saya%20tertarik%20konsultasi%20pembuatan%20website" 
+                   target="_blank" 
+                   class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs md:text-sm transition-all shadow-md shadow-blue-500/25 flex items-center gap-2 hover:scale-105 active:scale-95">
+                    <i data-lucide="message-square" class="w-4 h-4"></i>
+                    <span>Chat WhatsApp</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="relative z-10 pt-28 pb-20 px-4 md:px-8 max-w-6xl mx-auto space-y-28">
+
+        <!-- Hero Section -->
+        <section class="min-h-[75vh] flex flex-col justify-center items-center text-center pt-6">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full glass-pill text-xs font-bold text-blue-700 mb-6 border border-blue-200/80 shadow-sm animate-pulse-glow">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50"></span>
+                <span>Open for Projects • Respon Cepat 24/7</span>
+            </div>
+
+            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 max-w-4xl leading-[1.1] mb-6">
+                Website Buatan Tangan.<br>
+                <span class="text-gradient-primary">Estetik 3D, Presisi & Tanpa "AI Flop".</span>
+            </h1>
+
+            <p class="text-slate-600 text-base md:text-xl max-w-2xl font-medium leading-relaxed mb-8">
+                Saya <strong class="text-slate-900 font-bold">Kenzie Alkhalifi H</strong>. Saya merancang website modern berkonsep <span class="text-blue-600 font-semibold">Cerah, Interaktif 3D</span>, cepat, dan disesuaikan 100% dengan karakter merek Anda.
+            </p>
+
+            <!-- Action Bar -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                <a href="#calculator" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-3 group">
+                    <i data-lucide="calculator" class="w-5 h-5"></i>
+                    <span>Hitung Budget Website</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                
+                <a href="https://wa.me/6285185160051" target="_blank" class="w-full sm:w-auto px-6 py-4 rounded-xl glass-pill hover:bg-white text-slate-800 font-bold text-base transition-all flex items-center justify-center gap-3 border border-slate-200/80 shadow-sm">
+                    <i data-lucide="phone" class="w-5 h-5 text-emerald-600"></i>
+                    <span>+62 851-8516-0051</span>
+                </a>
+            </div>
+
+            <!-- 3D Background Helper -->
+            <div class="mt-10 glass-pill rounded-xl px-5 py-2.5 inline-flex items-center gap-3 border border-blue-100 text-xs text-slate-600 font-medium">
+                <i data-lucide="mouse-pointer" class="w-4 h-4 text-blue-600 animate-bounce"></i>
+                <span><strong>Latar 3D Cair & Organik:</strong> Gerakkan kursor untuk membuat gelombang air & pendaran cahaya yang halus!</span>
+            </div>
+        </section>
+
+        <!-- Profile & Ethos Section -->
+        <!-- Profile & Ethos Section -->
+        <section id="about" class="scroll-mt-28">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- Profile Card -->
+                <div class="lg:col-span-5 bright-glass rounded-3xl p-8 relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-36 h-36 bg-blue-200/50 rounded-full blur-2xl"></div>
+
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-blue-500/30">
+                            KA
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-900">Kenzie Alkhalifi H</h3>
+                            <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Web Builder Pro</p>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-slate-600 leading-relaxed mb-6">
+                        Spesialis pembuat website kreatif. Saya memadukan keindahan visual kaca (*Glassmorphism*), animasi 3D cair Three.js yang luwes, serta UX yang responsif untuk hasil yang berkarakter.
+                    </p>
+
+                    <div class="space-y-3 pt-4 border-t border-slate-200/60 text-xs font-semibold text-slate-700">
+                        <a href="tel:+6285185160051" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/80 transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                <i data-lucide="phone-call" class="w-4 h-4"></i>
+                            </div>
+                            <span>+62 851-8516-0051 (Klik Telepon/WA)</span>
+                        </a>
+
+                        <a href="mailto:kenzie_hatanta@gmail.com" class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/80 transition-colors">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                            </div>
+                            <span class="break-all">kenzie_hatanta@gmail.com (Klik Kirim Email)</span>
+                        </a>
+
+                        <div class="flex items-center gap-3 p-2.5 rounded-xl">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+                                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-emerald-700 font-bold">Budget Sesuai: Rp 50.000 – Rp 400.000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Core Values -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill text-xs font-bold text-blue-700 uppercase tracking-wider">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Kenapa Harus Memilih Saya?
+                    </div>
+
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                        Visual Cerah, Elegan & <span class="text-gradient-primary">Penuh Cita Rasa Manusia</span>
+                    </h2>
+
+                    <p class="text-slate-600 text-base leading-relaxed">
+                        Banyak website generik terasa seperti template AI yang kaku dan membosankan. Saya menghadirkan sentuhan manusia: kombinasi warna cerah segar, tipografi yang nyaman dibaca, serta efek 3D interaktif yang membuat pelanggan betah menjelajahi website Anda.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div class="bright-glass p-4 rounded-2xl border border-white">
+                            <div class="flex items-center gap-3 mb-2 text-blue-600">
+                                <i data-lucide="globe" class="w-5 h-5"></i>
+                                <h4 class="font-bold text-slate-900 text-sm">Free Subdomain Vercel / Netlify</h4>
+                            </div>
+                            <p class="text-xs text-slate-500">Bebas pilih nama alamat website (.vercel.app atau .netlify.app) gratis selamanya tanpa biaya bulanan.</p>
+                        </div>
+
+                        <div class="bright-glass p-4 rounded-2xl border border-white">
+                            <div class="flex items-center gap-3 mb-2 text-emerald-600">
+                                <i data-lucide="zap" class="w-5 h-5"></i>
+                                <h4 class="font-bold text-slate-900 text-sm">Responsif & Cepat</h4>
+                            </div>
+                            <p class="text-xs text-slate-500">Kode dioptimasi agar ringan diakses melalui layar smartphone maupun laptop.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Budget Calculator Section -->
+        <section id="calculator" class="scroll-mt-28">
+            <div class="bright-glass rounded-3xl p-6 sm:p-10 border border-blue-200/80 shadow-xl relative overflow-hidden">
+                <div class="max-w-2xl mx-auto text-center mb-8">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">
+                        <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Transparansi Biaya
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Kalkulator Estimasi Budget Website</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-1">Pilih jenis website, subdomain gratis pilihan Anda, & fitur tambahan untuk mengetahui estimasi biaya (Rp 50rb - Rp 400rb).</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    <!-- Calculator Options -->
+                    <div class="md:col-span-7 space-y-6">
+                        <!-- Type Selector -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Pilih Jenis Website</label>
+                            <div class="grid grid-cols-2 gap-2" id="type-selector">
+                                <button type="button" onclick="selectType('biolink', 50000)" class="type-btn active p-3 rounded-xl border border-blue-500 bg-blue-50 text-blue-700 text-xs font-bold text-left transition-all">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span>Bio Link / Personal</span>
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-normal">Mulai Rp 50.000</span>
+                                </button>
+                                
+                                <button type="button" onclick="selectType('landing', 150000)" class="type-btn p-3 rounded-xl border border-slate-200 bg-white/80 text-slate-700 text-xs font-bold text-left hover:border-blue-300 transition-all">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span>Landing Page UMKM</span>
+                                        <i data-lucide="store" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-normal">Mulai Rp 150.000</span>
+                                </button>
+
+                                <button type="button" onclick="selectType('portfolio', 250000)" class="type-btn p-3 rounded-xl border border-slate-200 bg-white/80 text-slate-700 text-xs font-bold text-left hover:border-blue-300 transition-all">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span>Portofolio Interaktif</span>
+                                        <i data-lucide="layout" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-normal">Mulai Rp 250.000</span>
+                                </button>
+
+                                <button type="button" onclick="selectType('custom3d', 350000)" class="type-btn p-3 rounded-xl border border-slate-200 bg-white/80 text-slate-700 text-xs font-bold text-left hover:border-blue-300 transition-all">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span>Web Custom 3D Full</span>
+                                        <i data-lucide="box" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-normal">Mulai Rp 350.000</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Subdomain & Hosting Platform Selection -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">2. Subdomain Gratis Selamanya (Bebas Pilih Nama)</label>
+                            <div class="p-3.5 rounded-2xl bg-white/90 border border-blue-200/80 space-y-3 shadow-sm">
+                                <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
+                                    <span class="flex items-center gap-1.5"><i data-lucide="globe" class="w-4 h-4 text-blue-600"></i> Pilih Platform Hosting Gratis:</span>
+                                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Rp 0 / Selamanya</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="selectPlatform('vercel.app')" id="plat-vercel" class="platform-btn active p-2.5 rounded-xl border border-blue-500 bg-blue-50 text-blue-700 text-xs font-bold flex items-center justify-between transition-all">
+                                        <span class="flex items-center gap-1.5"><i data-lucide="triangle" class="w-3.5 h-3.5"></i> Vercel</span>
+                                        <span class="text-[10px] text-blue-600 font-medium">.vercel.app</span>
+                                    </button>
+                                    <button type="button" onclick="selectPlatform('netlify.app')" id="plat-netlify" class="platform-btn p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-bold flex items-center justify-between transition-all hover:border-blue-300">
+                                        <span class="flex items-center gap-1.5"><i data-lucide="layers" class="w-3.5 h-3.5"></i> Netlify</span>
+                                        <span class="text-[10px] text-slate-500 font-medium">.netlify.app</span>
+                                    </button>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Ketik Request Nama Alamat Website Anda:</label>
+                                    <div class="flex items-center rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                                        <input type="text" id="subdomain-name" oninput="calculatePrice()" placeholder="contoh: tokokristal-kenzie" class="w-full bg-transparent outline-none text-slate-800 font-bold placeholder:font-normal placeholder:text-slate-400">
+                                        <span id="platform-suffix-preview" class="text-blue-600 font-extrabold text-xs whitespace-nowrap ml-1">.vercel.app</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Addons -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">3. Fitur Tambahan (Opsional)</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center justify-between p-2.5 rounded-xl bg-white/80 border border-slate-200 text-xs cursor-pointer hover:bg-white">
+                                    <span class="flex items-center gap-2 font-medium text-slate-700">
+                                        <input type="checkbox" id="addon-wa" onchange="calculatePrice()" class="rounded text-blue-600 focus:ring-blue-500">
+                                        Integrasi Form WA / Direct Checkout
+                                    </span>
+                                    <span class="font-bold text-blue-600">+Rp 25.000</span>
+                                </label>
+
+                                <label class="flex items-center justify-between p-2.5 rounded-xl bg-white/80 border border-slate-200 text-xs cursor-pointer hover:bg-white">
+                                    <span class="flex items-center gap-2 font-medium text-slate-700">
+                                        <input type="checkbox" id="addon-fast" onchange="calculatePrice()" class="rounded text-blue-600 focus:ring-blue-500">
+                                        Pengerjaan Kilat 24 Jam
+                                    </span>
+                                    <span class="font-bold text-blue-600">+Rp 35.000</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Output Box -->
+                    <div class="md:col-span-5 bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 rounded-2xl p-6 text-white text-center shadow-xl relative">
+                        <span class="text-xs uppercase tracking-widest text-blue-200 font-bold block mb-1">Total Estimasi Investasi</span>
+                        
+                        <div id="total-price-display" class="text-4xl sm:text-5xl font-black mb-2 tracking-tight">
+                            Rp 50.000
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 mb-5 border border-white/10 text-xs space-y-1">
+                            <p class="text-blue-100 font-medium">Domain & Hosting: <strong id="domain-target-display" class="text-white font-bold">nama-website.vercel.app</strong> (Gratis)</p>
+                            <p class="text-blue-100 font-medium">Estimasi Waktu: <strong id="est-time" class="text-white font-bold">1 - 2 Hari</strong></p>
+                        </div>
+
+                        <a id="calc-wa-btn" 
+                           href="https://wa.me/6285185160051?text=Halo%20Kenzie" 
+                           target="_blank" 
+                           class="w-full py-3.5 px-4 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
+                            <span>Pesan Dengan Harga Ini</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Service & Pricing Packages -->
+        <section id="packages" class="scroll-mt-28">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i> Paket Siap Pakai
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-black text-slate-900">Pilihan Paket Sesuai Kebutuhan</h2>
+                <p class="text-slate-600 text-sm mt-2">Semua paket sudah termasuk subdomain gratis Vercel / Netlify tanpa biaya perpanjangan tahunan.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Package 1 -->
+                <div class="bright-glass rounded-3xl p-6 flex flex-col justify-between border-t-4 border-t-sky-400">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-sky-100 text-sky-700 inline-block mb-3">Paket Ringkas</span>
+                        <h3 class="text-xl font-bold text-slate-900 mb-1">Starter Link Bio</h3>
+                        <p class="text-xs text-slate-500 mb-4">Cocok untuk personal branding, bio Instagram/TikTok, atau landing page sederhana.</p>
+
+                        <div class="mb-6">
+                            <span class="text-3xl font-black text-slate-900">Rp 50.000</span>
+                            <span class="text-xs text-slate-500 font-medium"> - Rp 100rb</span>
+                        </div>
+
+                        <ul class="space-y-2.5 text-xs text-slate-700 border-t border-slate-200/60 pt-4 mb-6">
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>1 Halaman Website Responsive Mobile</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Subdomain Gratis (.vercel.app / .netlify.app)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Link Sosmed & Tombol Chat WA</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="https://wa.me/6285185160051?text=Halo%20Kenzie,%20saya%20mau%20pesan%20Paket%20Starter%20(50k-100k)%20dengan%20subdomain%20gratis" 
+                       target="_blank" 
+                       class="w-full py-3 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold text-xs text-center transition-all block">
+                        Pesan Paket Starter
+                    </a>
+                </div>
+
+                <!-- Package 2 (Popular) -->
+                <div class="bright-glass rounded-3xl p-6 flex flex-col justify-between border-2 border-blue-500 shadow-xl relative bg-white/90 transform md:-translate-y-3">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-[10px] uppercase tracking-widest shadow-md">
+                        Paling Populer
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-blue-100 text-blue-700 inline-block mb-3 mt-1">Bisnis / UMKM</span>
+                        <h3 class="text-xl font-bold text-slate-900 mb-1">Pro Landing Page</h3>
+                        <p class="text-xs text-slate-500 mb-4">Solusi tepat untuk promosi usaha, katalog produk, dan profil bisnis komprehensif.</p>
+
+                        <div class="mb-6">
+                            <span class="text-3xl font-black text-gradient-primary">Rp 150.000</span>
+                            <span class="text-xs text-slate-500 font-medium"> - Rp 250rb</span>
+                        </div>
+
+                        <ul class="space-y-2.5 text-xs text-slate-700 border-t border-slate-200/60 pt-4 mb-6">
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>3-5 Section Lengkap & Interaktif</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Subdomain Custom Vercel / Netlify (Bebas Pilih Nama)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Galeri Produk & Integrasi WhatsApp</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Hosting Selamanya (Tanpa Biaya Bulanan)</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="https://wa.me/6285185160051?text=Halo%20Kenzie,%20saya%20mau%20pesan%20Paket%20Pro%20(150k-250k)%20dengan%20subdomain%20gratis" 
+                       target="_blank" 
+                       class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs text-center transition-all shadow-lg shadow-blue-500/30 block">
+                        Pesan Paket Pro
+                    </a>
+                </div>
+
+                <!-- Package 3 -->
+                <div class="bright-glass rounded-3xl p-6 flex flex-col justify-between border-t-4 border-t-indigo-500">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 inline-block mb-3">Custom Exclusive</span>
+                        <h3 class="text-xl font-bold text-slate-900 mb-1">Full 3D Interactive</h3>
+                        <p class="text-xs text-slate-500 mb-4">Website eksklusif dengan latar belakang 3D Three.js, efek pencahayaan, dan fitur custom.</p>
+
+                        <div class="mb-6">
+                            <span class="text-3xl font-black text-slate-900">Rp 300.000</span>
+                            <span class="text-xs text-slate-500 font-medium"> - Rp 400rb</span>
+                        </div>
+
+                        <ul class="space-y-2.5 text-xs text-slate-700 border-t border-slate-200/60 pt-4 mb-6">
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Custom 3D Object & Ambient Interactive</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Bebas Pilih Domain (.vercel.app / .netlify.app / Custom Domain .com)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Garansi Revisi Sampai Selesai</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="https://wa.me/6285185160051?text=Halo%20Kenzie,%20saya%20mau%20pesan%20Paket%20Full%203D%20(300k-400k)" 
+                       target="_blank" 
+                       class="w-full py-3 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold text-xs text-center transition-all block">
+                        Pesan Paket 3D Premium
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Portfolio Showcase -->
+        <section id="portfolio" class="scroll-mt-28">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Hasil Karya
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900">Konsep Visual Interaktif</h2>
+                </div>
+                <p class="text-slate-600 text-xs sm:text-sm max-w-xs mt-2 md:mt-0 font-medium">Eksplorasi tampilan modern berunsur 3D & UI kaca.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Showcase Card 1 -->
+                <div class="bright-glass rounded-3xl overflow-hidden group">
+                    <div class="h-52 bg-gradient-to-br from-blue-100 via-sky-50 to-indigo-100 p-6 flex flex-col justify-between relative overflow-hidden">
+                        <div class="flex justify-between items-center z-10">
+                            <span class="px-3 py-1 rounded-full bg-white/80 text-blue-700 text-[11px] font-bold shadow-sm">Light Glass UI</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        </div>
+                        <div class="z-10">
+                            <h3 class="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">Tech & Modern Studio Page</h3>
+                            <p class="text-xs text-slate-600 mt-1">Desain segar untuk bisnis teknologi dan jasa kreatif.</p>
+                        </div>
+                        <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-blue-400/20 rounded-full blur-2xl"></div>
+                    </div>
+                    <div class="p-5 flex items-center justify-between border-t border-slate-200/60 bg-white/60">
+                        <span class="text-xs font-semibold text-slate-500">HTML5 • Tailwind • Three.js</span>
+                        <a href="https://wa.me/6285185160051?text=Halo%20Kenzie,%20saya%20suka%20contoh%20desain%20Tech%20Studio" target="_blank" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                            Pesan Seperti Ini <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Showcase Card 2 -->
+                <div class="bright-glass rounded-3xl overflow-hidden group">
+                    <div class="h-52 bg-gradient-to-br from-amber-50 via-orange-50 to-emerald-50 p-6 flex flex-col justify-between relative overflow-hidden">
+                        <div class="flex justify-between items-center z-10">
+                            <span class="px-3 py-1 rounded-full bg-white/80 text-emerald-700 text-[11px] font-bold shadow-sm">UMKM Storefront</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        </div>
+                        <div class="z-10">
+                            <h3 class="text-2xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors">Catalog & Direct Order</h3>
+                            <p class="text-xs text-slate-600 mt-1">Katalog produk jualan dengan tombol order instan ke WhatsApp.</p>
+                        </div>
+                        <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-emerald-400/20 rounded-full blur-2xl"></div>
+                    </div>
+                    <div class="p-5 flex items-center justify-between border-t border-slate-200/60 bg-white/60">
+                        <span class="text-xs font-semibold text-slate-500">Fast Loading • Responsive Mobile</span>
+                        <a href="https://wa.me/6285185160051?text=Halo%20Kenzie,%20saya%20suka%20contoh%20desain%20UMKM" target="_blank" class="text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1">
+                            Pesan Seperti Ini <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Direct Contact Section -->
+        <section id="contact">
+            <div class="bright-glass rounded-3xl p-8 sm:p-12 border border-blue-200/80 shadow-2xl relative overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                    <div class="lg:col-span-7 space-y-3">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-pill text-xs font-bold text-emerald-700 uppercase tracking-wider">
+                            <i data-lucide="check" class="w-3.5 h-3.5"></i> Konsultasi Gratis
+                        </div>
+                        <h2 class="text-3xl sm:text-4xl font-black text-slate-900">
+                            Mulai Konsultasi Website Anda Sekarang
+                        </h2>
+                        <p class="text-slate-600 text-sm md:text-base">
+                            Hubungi Kenzie langsung melalui WhatsApp atau Email di bawah ini:
+                        </p>
+                    </div>
+
+                    <div class="lg:col-span-5 flex flex-col gap-3">
+                        <!-- Direct Clickable WhatsApp Button -->
+                        <a href="https://wa.me/6285185160051?text=Halo%20Kenzie,%20saya%20ingin%20konsultasi%20pembuatan%20website" 
+                           target="_blank" 
+                           class="p-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-between transition-all shadow-lg shadow-emerald-600/25 hover:scale-[1.02]">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-[10px] uppercase tracking-wider opacity-80">WhatsApp Direct</span>
+                                    <span class="text-sm font-black">+62 851-8516-0051</span>
+                                </div>
+                            </div>
+                            <i data-lucide="external-link" class="w-5 h-5"></i>
+                        </a>
+
+                        <!-- Direct Clickable Email Button -->
+                        <a href="mailto:kenzie_hatanta@gmail.com" 
+                           class="p-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold flex items-center justify-between transition-all border border-slate-200 shadow-sm hover:scale-[1.02]">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <i data-lucide="mail" class="w-5 h-5"></i>
+                                </div>
+                                <div class="text-left">
+                                    <span class="block text-[10px] uppercase tracking-wider text-slate-400">Email Direct</span>
+                                    <span class="text-xs sm:text-sm font-bold break-all">kenzie_hatanta@gmail.com</span>
+                                </div>
+                            </div>
+                            <i data-lucide="arrow-up-right" class="w-5 h-5 text-slate-400"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+        <!-- Footer -->
+    <footer class="border-t border-slate-200 py-8 text-center text-xs text-slate-500 font-medium relative z-10 bg-white/40">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 Kenzie Alkhalifi H. Web Builder Services.</p>
+            <p class="text-slate-600">Built with Fluid 3D Wave Engine & Bright Glassmorphism UI</p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // -------------------------------------------------------------
+        // PRICE CALCULATOR & DOMAIN LOGIC
+        // -------------------------------------------------------------
+        let currentBasePrice = 50000;
+        let selectedTypeName = "Bio Link / Personal";
+        let selectedPlatform = "vercel.app";
+
+        function selectPlatform(platformKey) {
+            selectedPlatform = platformKey;
+            
+            document.querySelectorAll('.platform-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+                btn.classList.add('border-slate-200', 'bg-white', 'text-slate-700');
+            });
+
+            const activeBtn = document.getElementById(platformKey === 'vercel.app' ? 'plat-vercel' : 'plat-netlify');
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-200', 'bg-white', 'text-slate-700');
+                activeBtn.classList.add('active', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+            }
+
+            document.getElementById('platform-suffix-preview').innerText = '.' + platformKey;
+            calculatePrice();
+        }
+
+        function selectType(typeKey, basePrice) {
+            currentBasePrice = basePrice;
+            
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+                btn.classList.add('border-slate-200', 'bg-white/80', 'text-slate-700');
+            });
+
+            event.currentTarget.classList.remove('border-slate-200', 'bg-white/80', 'text-slate-700');
+            event.currentTarget.classList.add('active', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+
+            if(typeKey === 'biolink') selectedTypeName = "Bio Link / Personal";
+            if(typeKey === 'landing') selectedTypeName = "Landing Page UMKM";
+            if(typeKey === 'portfolio') selectedTypeName = "Portofolio Interaktif";
+            if(typeKey === 'custom3d') selectedTypeName = "Web Custom 3D Full";
+
+            calculatePrice();
+        }
+
+        function calculatePrice() {
+            let total = currentBasePrice;
+            const waAddon = document.getElementById('addon-wa').checked;
+            const fastAddon = document.getElementById('addon-fast').checked;
+
+            if (waAddon) total += 25000;
+            if (fastAddon) total += 35000;
+
+            if (total > 400000) total = 400000;
+
+            const formattedPrice = "Rp " + total.toLocaleString('id-ID');
+            document.getElementById('total-price-display').innerText = formattedPrice;
+
+            const estTimeElem = document.getElementById('est-time');
+            if (fastAddon) {
+                estTimeElem.innerText = "24 Jam (Kilat)";
+            } else if (total <= 100000) {
+                estTimeElem.innerText = "1 - 2 Hari";
+            } else if (total <= 250000) {
+                estTimeElem.innerText = "2 - 3 Hari";
+            } else {
+                estTimeElem.innerText = "3 - 5 Hari";
+            }
+
+            const rawInput = document.getElementById('subdomain-name').value.trim();
+            const sanitizedName = rawInput ? rawInput.toLowerCase().replace(/[^a-z0-9-]/g, '') : 'nama-website-anda';
+            const fullDomainPreview = `${sanitizedName}.${selectedPlatform}`;
+
+            document.getElementById('domain-target-display').innerText = fullDomainPreview;
+
+            const waMessage = encodeURIComponent(`Halo Kenzie, saya mau pesan pembuatan website:\n- Jenis Paket: ${selectedTypeName}\n- Request Subdomain: ${fullDomainPreview} (Gratis)\n- Total Estimasi: ${formattedPrice}`);
+            document.getElementById('calc-wa-btn').href = `https://wa.me/6285185160051?text=${waMessage}`;
+        }
+
+
+        // -------------------------------------------------------------
+        // ORGANIC FLUID 3D SILK WAVE & LIGHT DUST BACKGROUND ENGINE
+        // -------------------------------------------------------------
+        window.onload = function() {
+            const canvas = document.getElementById('webgl-canvas');
+            
+            // 1. Scene & Atmosphere Setup
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0xf8fafc, 0.025);
+
+            // 2. Camera Setup
+            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, -2, 14);
+
+            // 3. WebGL Renderer
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // 4. Lighting - Soft Ambient Studio Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
+
+            // Mouse-following fluid light spotlight
+            const mouseSpotLight = new THREE.PointLight(0x3b82f6, 3.5, 30);
+            mouseSpotLight.position.set(0, 0, 8);
+            scene.add(mouseSpotLight);
+
+            // Warm Emerald Accent Light
+            const accentLight = new THREE.DirectionalLight(0x10b981, 1.5);
+            accentLight.position.set(-10, 10, 5);
+            scene.add(accentLight);
+
+            // 5. Creating Fluid Organic Wave Plane
+            const planeWidth = 40;
+            const planeHeight = 30;
+            const planeSegments = 65;
+
+            const waveGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight, planeSegments, planeSegments);
+            
+            // Custom Soft Glassy Liquid Material
+            const waveMaterial = new THREE.MeshStandardMaterial({
+                color: 0x93c5fd,
+                roughness: 0.25,
+                metalness: 0.1,
+                wireframe: false,
+                flatShading: true,
+                transparent: true,
+                opacity: 0.72
+            });
+
+            const waveMesh = new THREE.Mesh(waveGeometry, waveMaterial);
+            waveMesh.rotation.x = -Math.PI / 3.2;
+            waveMesh.position.set(0, -4, -2);
+            scene.add(waveMesh);
+
+            // Save original z positions for vertex displacement physics
+            const posAttr = waveGeometry.attributes.position;
+            const originalZ = [];
+            for (let i = 0; i < posAttr.count; i++) {
+                originalZ.push(posAttr.getZ(i));
+            }
+
+            // 6. Floating Ambient Dust Particle Field
+            const particleCount = 120;
+            const particleGeo = new THREE.BufferGeometry();
+            const particlePos = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                particlePos[i] = (Math.random() - 0.5) * 35;
+                particlePos[i + 1] = (Math.random() - 0.5) * 25;
+                particlePos[i + 2] = (Math.random() - 0.5) * 15;
+            }
+
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+
+            const particleMat = new THREE.PointsMaterial({
+                color: 0x2563eb,
+                size: 0.18,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particleSystem = new THREE.Points(particleGeo, particleMat);
+            scene.add(particleSystem);
+
+            // 7. Mouse & Scroll Interaction Tracker
+            let mouseX = 0, mouseY = 0;
+            let targetMouseX = 0, targetMouseY = 0;
+
+            window.addEventListener('mousemove', (e) => {
+                targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                if(e.touches.length > 0) {
+                    targetMouseX = (e.touches[0].clientX / window.innerWidth - 0.5) * 2;
+                    targetMouseY = (e.touches[0].clientY / window.innerHeight - 0.5) * 2;
+                }
+            });
+
+            let scrollY = 0;
+            window.addEventListener('scroll', () => {
+                scrollY = window.scrollY;
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // 8. Fluid Animation Loop
+            const clock = new THREE.Clock();
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                const time = clock.getElapsedTime();
+
+                // Smooth Mouse Interpolation
+                mouseX += (targetMouseX - mouseX) * 0.04;
+                mouseY += (targetMouseY - mouseY) * 0.04;
+
+                // Move Spotlight dynamically with cursor
+                mouseSpotLight.position.x = mouseX * 10;
+                mouseSpotLight.position.y = -mouseY * 8 + 2;
+
+                // Displace vertices smoothly to create flowing organic wave surface
+                for (let i = 0; i < posAttr.count; i++) {
+                    const u = posAttr.getX(i);
+                    const v = posAttr.getY(i);
+
+                    // Combine harmonic sine & cosine waves for liquid movement
+                    const wave1 = Math.sin(u * 0.3 + time * 1.2) * 0.7;
+                    const wave2 = Math.cos(v * 0.4 + time * 1.5) * 0.6;
+                    const mouseDistSq = (u - mouseX * 12) ** 2 + (v - mouseY * 10) ** 2;
+                    const mouseRipple = Math.sin(Math.sqrt(mouseDistSq) - time * 3) * Math.max(0, 1.2 - mouseDistSq * 0.02);
+
+                    posAttr.setZ(i, wave1 + wave2 + mouseRipple);
+                }
+                posAttr.needsUpdate = true;
+                waveGeometry.computeVertexNormals();
+
+                // Rotate & Tilt scene smoothly according to scroll and cursor
+                waveMesh.rotation.z = mouseX * 0.08 + Math.sin(time * 0.3) * 0.03;
+                waveMesh.rotation.y = mouseY * 0.08;
+
+                // Animate floating dust particles
+                particleSystem.rotation.y = time * 0.02 + mouseX * 0.1;
+                particleSystem.position.y = -scrollY * 0.003;
+
+                // Subtle parallax camera motion
+                camera.position.x += (mouseX * 1.5 - camera.position.x) * 0.03;
+                camera.position.y += (-mouseY * 1.2 - (scrollY * 0.003) - camera.position.y) * 0.03;
+                camera.lookAt(0, -1 - scrollY * 0.002, 0);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        };
+    </script>
+</body>
+</html>
